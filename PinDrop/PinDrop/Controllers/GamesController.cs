@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PinDrop.Models.DataModels;
 using PinDrop.Models.RequestModels;
+using PinDrop.Models.ViewModels;
+using Swashbuckle;
 
 namespace PinDrop.Controllers
 {
@@ -19,7 +22,9 @@ namespace PinDrop.Controllers
     public class GamesController : ControllerBase
     {
 
-        // Ef Core db context being used as repository and unit-of-work.
+        /// <summary>
+        /// Ef Core db context being used as repository and unit-of-work.
+        /// </summary>
         private readonly PinDropContext _context;
 
         /// <summary>
@@ -34,14 +39,16 @@ namespace PinDrop.Controllers
 
         // GET: api/Games
         [HttpGet]
-        public IEnumerable<GameDataModel> GetGames()
+        public IEnumerable<GameViewModel> GetGames()
         {
-            return _context.Games;
+            var gameIds = _context.Games.Select(g => g.Id).ToList();
+            return gameIds.Select(id => ViewModelFactory.CreateGameViewModel(id, _context));
         }
 
         // GET: api/Games/3e5e3270-87db-44c3-b750-30101af4d632
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetGameDataModel([FromRoute] Guid id)
+        [ProducesResponseType(typeof(GameViewModel), 200)]
+        public async Task<IActionResult> GetGame([FromRoute] Guid id)
         {
             if (!ModelState.IsValid)
             {
@@ -55,12 +62,13 @@ namespace PinDrop.Controllers
                 return NotFound();
             }
 
-            return Ok(gameDataModel);
+            return Ok(ViewModelFactory.CreateGameViewModel(gameDataModel.Id, _context));
         }
 
         // POST: api/Games
         [HttpPost]
-        public async Task<IActionResult> PostGameDataModel([FromBody] CreateGameRequest request)
+        [ProducesResponseType(201)]
+        public async Task<IActionResult> CreateGame([FromBody] CreateGameRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -86,7 +94,26 @@ namespace PinDrop.Controllers
             _context.Games.Add(gameDataModel);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetGameDataModel", new { id = gameDataModel.Id }, gameDataModel);
+            return CreatedAtAction("GetGame", new { id = gameDataModel.Id }, gameDataModel);
+        }
+
+
+        // POST: api/Games/3e5e3270-87db-44c3-b750-30101af4d632/Throws
+        [HttpPost("{id}/throws")]
+        [ProducesResponseType(201)]
+        public async Task<IActionResult> AddThrow([FromBody] CreateThrowRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var throwDataModel = new ThrowDataModel();
+
+            _context.Throws.Add(throwDataModel);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetGame", new { id = throwDataModel.GameId }, throwDataModel);
         }
 
     }
