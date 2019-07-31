@@ -83,9 +83,11 @@ namespace PinDrop.Models.ViewModels
                     // If this is a strike...
                     if (thisFrame.FrameNumber < 10 && thisFrame.IsStrike)
                     {
-                        // ..and the next one is a strike as well,
-                        if (nextFrame != null && nextFrame.IsStrike)
+                        // For frame 1-8, next frame being strikes means add 10 to next-next's first throw.
+                        if (thisFrame.FrameNumber < 9 && nextFrame != null && nextFrame.IsStrike)
                             score += 10 + (nextNextFrame?.FirstThrow ?? 0);
+
+                        // Otherwise, use next's first and second throw.
                         else
                             score += (nextFrame?.FirstThrow ?? 0) + (nextFrame?.SecondThrow ?? 0);
                     }
@@ -110,18 +112,29 @@ namespace PinDrop.Models.ViewModels
         private static bool CanScore(FrameDataModel thisFrame, FrameDataModel nextFrame, FrameDataModel nextNextFrame)
         {
             // If we are looking at a spare, we need the next Frame to have a value in order to score.
-            if (thisFrame.IsSpare) return nextFrame?.FirstThrow != null;
+            if (thisFrame.IsSpare)
+            {
+                // Frame 10 will only depend on this frame's third throw.
+                if (thisFrame.FrameNumber == 10) return thisFrame?.ThirdThrow != null;
+
+                // Otherwise, we check for next frame's first throw.
+                return nextFrame?.FirstThrow != null;
+            }
 
             // If we are looking at a strike...
             if (thisFrame.IsStrike)
             {
-                // Frames 9 and 10 will only ever be dependent on next frame.
-                if (thisFrame.FrameNumber > 8) return nextFrame?.FirstThrow != null && nextFrame?.SecondThrow != null;
+                // Frame 10 will only ever be dependent on this frame.
+                if (thisFrame.FrameNumber == 10) return thisFrame?.SecondThrow != null && thisFrame?.ThirdThrow != null;
 
-                // Otherwise, we check for next frame's second throw or next-next's first throw.
-                return nextFrame != null && nextFrame.IsStrike
-                    ? nextNextFrame?.FirstThrow != null
-                    : nextFrame?.SecondThrow != null;
+                // Frame 9 will only ever be dependent on next frame.
+                if (thisFrame.FrameNumber == 9) return nextFrame?.FirstThrow != null && nextFrame.SecondThrow != null;
+
+                // If next frame is a strike, check if next-next has a value.
+                if (nextFrame != null && nextFrame.IsStrike) return nextNextFrame?.FirstThrow != null;
+
+                // Otherwise check that nextFrame has a Second Throw.
+                return nextFrame?.SecondThrow != null;
             }
 
             // Otherwise, we can score when the frame is finished.
@@ -155,7 +168,8 @@ namespace PinDrop.Models.ViewModels
             {
                 if (f.ThirdThrow == 10)
                     throwCharacters.Add('X');
-                else if (f.ThirdThrow + f.SecondThrow == 10)
+                // If we weren't already a Spare, then mark Spare.
+                else if (f.FirstThrow + f.SecondThrow != 10 && f.ThirdThrow + f.SecondThrow == 10)
                     throwCharacters.Add('/');
                 else
                     throwCharacters.Add(f.SecondThrow.ToString()[0]);
