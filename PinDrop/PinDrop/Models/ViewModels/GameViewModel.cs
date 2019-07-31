@@ -4,33 +4,45 @@ using System.Collections.Generic;
 namespace PinDrop.Models.ViewModels
 {
     /// <summary>
-    /// DTO for displaying information about a specific game.
+    ///     DTO for displaying information about a specific game.
     /// </summary>
     public class GameViewModel
     {
-    
         /// <summary>
-        /// Unique ID for this game.
+        ///     Unique ID for this game.
         /// </summary>
         public Guid Id { get; set; }
 
         /// <summary>
-        /// Date/Time this game was started.
+        ///     The player for this game.
+        /// </summary>
+        public PlayerViewModel Player { get; set; }
+
+        /// <summary>
+        ///     Date/Time this game was started.
         /// </summary>
         public DateTime GameStart { get; set; }
 
         /// <summary>
-        /// Unique ID for the player whose turn it is.
+        ///     A list of the frames in this game.
         /// </summary>
-        public Guid CurrentPlayerId { get; set; }
-        
+        public List<FrameViewModel> Frames { get; set; }
+
         /// <summary>
-        /// The scores associated with this game.
+        ///     The current frame this Game is on.
         /// </summary>
-        public List<GameScoreViewModel> Scores { get; set; }       
+        public int? CurrentFrame { get; set; }
 
+        /// <summary>
+        ///     The current throw inside the frame this game is on.
+        /// </summary>
+        public int? CurrentThrow { get; set; }
+
+        /// <summary>
+        ///     Total score for this game.
+        /// </summary>
+        public int TotalScore { get; set; }
     }
-
 }
 
 
@@ -38,21 +50,15 @@ namespace PinDrop.Models.ViewModels
      {
         "id": "c26e23c7-2323-4012-b30b-6c399e179252",
         "gameStart": "2019-07-30T15:01:55.714942+03:00",
-        "currentPlayerId": "3e5e3270-87db-44c3-b750-30101af4d632",   
-        "scores": [{
-            "player": {
-                "id": "3e5e3270-87db-44c3-b750-30101af4d632",
-                "name": "Player1"
-            },
-            "frames": [
-                { "throws": ["5","/"], "score": 20}, 
-                { "throws": ["X"], "score": 19}, 
-                { "throws": ["1","8"], "score": 9},
-                { "throws": ["6"] } 
-            ],
-            "totalScore": 48,
-            "currentFrame": 4,
-            "currentThrow": 2
-        }]
+        "playerId": "3e5e3270-87db-44c3-b750-30101af4d632",   
+        "frames": [
+            { "fameNumber": 1, "throws": ["5","/"], "score": 20}, 
+            { "fameNumber": 2, "throws": ["X"], "score": 19}, 
+            { "fameNumber": 3, "throws": ["1","8"], "score": 9},
+            { "fameNumber": 4, "throws": ["6"] } 
+        ],
+        "currentFrame": 4,
+        "currentThrow": 2,        
+        "totalScore": 48
     }
  */
